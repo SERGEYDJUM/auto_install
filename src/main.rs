@@ -2,8 +2,7 @@ use relative_path::RelativePath;
 use std::path::Path;
 use std::env;
 use std::fs;
-//use std::io;
-//use reqwest; 
+use url::Url;
 
 fn main() {
 
@@ -13,7 +12,7 @@ fn main() {
 
 struct Program {
     name: String,
-    url: String,
+    url: Url,
     path: String, //Path to exe
     silent_key: String
 }
@@ -37,7 +36,7 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
             let tokens: Vec<&str> = row.split(' ').collect(); 
             if tokens.len() > 1 {
                 let name = tokens[0];
-                let url = tokens[1];
+                let url = Url::parse(tokens[1]).expect("Problems with url.");
                 let mut key: String = String::new();
                 if tokens.len() > 2 {
                     key += tokens[2];
@@ -50,7 +49,7 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
                 programs_list.push(
                     Program {
                         name: name.to_owned(), 
-                        url: url.to_owned(),
+                        url: url,
                         silent_key: key,
                         path: String::new()
                     }
@@ -59,26 +58,22 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
             //TODO: Installation from local
         }
     }
-
     programs_list
 }
 
 fn string_to_pure_rows(text: &String) -> Vec<String> {
     let lines: Vec<&str> = text.split('\n').collect(); 
     let mut rows: Vec<String> = Vec::new(); //Returnable vec
-
     for row in lines { //Moves lines to rows 
         let row: String = row.to_owned();
         rows.push(row);
     }
-
     for i in 0..rows.len() { //Deletes syntax symbols
         rows[i] = rows[i]
         .trim()
         .replace("->", "")
         .replace("  ", " ");
     }
-
     rows
 }
 

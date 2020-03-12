@@ -1,11 +1,14 @@
 use relative_path::RelativePath;
+use std::process::Command;
 use std::path::Path;
 use std::env;
-use std::fs;
 use url::Url;
+use std::fs;
 
 fn main() {
-
+    let dir = env::current_dir().unwrap();
+    let dir = dir.to_str().unwrap();
+    let path = RelativePath::new("/src/").to_path(Path::new(&dir)); 
 }
 
 #[derive(Debug)]
@@ -14,12 +17,20 @@ struct Program {
     name: String,
     url: Url,
     path: String, //Path to exe
-    silent_key: String
+    silent_key: String,
+    is_installed: bool
 }
 
 impl Program {
     fn change_path(&mut self, path: &String) {
         self.path = path.to_owned();
+    }
+
+    fn install(&self) {
+        Command::new("cmd")
+            .args(&["/C", format!("{} {}", self.path, self.silent_key ).as_str()])
+            .output()
+            .expect("Failed to install");
     }
 }
 
@@ -51,7 +62,9 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
                         name: name.to_owned(), 
                         url: url,
                         silent_key: key,
-                        path: String::new()
+                        path: String::new(),
+                        is_installed: false
+
                     }
                 )
             }
@@ -89,4 +102,19 @@ fn read_test() {
     for prog in progs {
         println!("{:?}", prog);
     }
+}
+#[test]
+fn install_test() {
+    let dir = env::current_dir().unwrap();
+    let dir = dir.to_str().unwrap();
+    let path = RelativePath::new("/src/chrome.exe").to_path(Path::new(&dir));
+    let test_program = Program {
+        name: "Chrome".to_owned(), 
+        url: Url::parse(&"https://www.google.ru/intl/ru/chrome").expect("Error!"),
+        silent_key: "".to_owned(),
+        path: String::from(path.to_str().unwrap()),
+        is_installed: false
+    };
+
+    test_program.install();
 }

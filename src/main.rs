@@ -27,10 +27,27 @@ impl Program {
     }
 
     fn install(&self) {
-        Command::new("cmd")
+        if !self.is_installed {
+            Command::new("cmd")
             .args(&["/C", format!("{} {}", self.path, self.silent_key ).as_str()])
             .output()
-            .expect("Failed to install");
+            .expect("Failed to install!");
+        }
+    }
+}
+
+fn check_installed(programs: &mut Vec<Program>) {
+    let apps_list = Command::new("powershell")
+        .args(&["Get-ItemProperty HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName"])
+        .output()
+        .expect("Failed to check apps!");
+    let apps_list = unsafe {String::from_utf8_unchecked(apps_list.stdout)};
+    //TODO: Make this code safe
+    let apps_list = apps_list.to_lowercase();
+    for program in programs {
+        if apps_list.contains(&program.name) {
+            program.is_installed = true;
+        }
     }
 }
 
@@ -47,7 +64,7 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
             let tokens: Vec<&str> = row.split(' ').collect(); 
             if tokens.len() > 1 {
                 let name = tokens[0];
-                let url = Url::parse(tokens[1]).expect("Problems with url.");
+                let url = Url::parse(tokens[1]).expect("Url parsing error!");
                 let mut key: String = String::new();
                 if tokens.len() > 2 {
                     key += tokens[2];
@@ -59,7 +76,7 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
 
                 programs_list.push(
                     Program {
-                        name: name.to_owned(), 
+                        name: name.to_lowercase().to_owned(), 
                         url: url,
                         silent_key: key,
                         path: String::new(),
@@ -98,7 +115,7 @@ fn read_test() {
     let path = RelativePath::new("/src/list.cfg").to_path(Path::new(&dir)); 
     let mut progs: Vec<Program> = file_to_vector(&path);
     let path: String = String::from(path.to_str().unwrap());
-    progs[0].change_path(&path);
+    check_installed(&mut progs);
     for prog in progs {
         println!("{:?}", prog);
     }

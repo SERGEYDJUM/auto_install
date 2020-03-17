@@ -1,9 +1,6 @@
+use std::{process::Command, path::Path, env, fs};
 use relative_path::RelativePath;
-use std::process::Command;
-use std::path::Path;
-use std::env;
 use url::Url;
-use std::fs;
 
 fn main() {
     let dir = env::current_dir().unwrap();
@@ -12,7 +9,6 @@ fn main() {
 }
 
 #[derive(Debug)]
-
 struct Program {
     name: String,
     url: Url,
@@ -106,7 +102,6 @@ fn string_to_pure_rows(text: &String) -> Vec<String> {
     }
     rows
 }
-
 #[cfg(test)]
 #[test]
 fn read_test() {

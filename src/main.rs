@@ -1,35 +1,14 @@
 use std::{process::Command, path::Path, env, fs};
+use crate::program::program::Program;
 use relative_path::RelativePath;
 use url::Url;
+
+pub mod program;
 
 fn main() {
     let dir = env::current_dir().unwrap();
     let dir = dir.to_str().unwrap();
     let path = RelativePath::new("/src/").to_path(Path::new(&dir)); 
-}
-
-#[derive(Debug)]
-struct Program {
-    name: String,
-    url: Url,
-    path: String, //Path to exe
-    silent_key: String,
-    is_installed: bool
-}
-
-impl Program {
-    fn change_path(&mut self, path: &String) {
-        self.path = path.to_owned();
-    }
-
-    fn install(&self) {
-        if !self.is_installed {
-            Command::new("cmd")
-            .args(&["/C", format!("{} {}", self.path, self.silent_key ).as_str()])
-            .output()
-            .expect("Failed to install!");
-        }
-    }
 }
 
 fn check_installed(programs: &mut Vec<Program>) {
@@ -102,6 +81,8 @@ fn string_to_pure_rows(text: &String) -> Vec<String> {
     }
     rows
 }
+
+
 #[cfg(test)]
 #[test]
 fn read_test() {

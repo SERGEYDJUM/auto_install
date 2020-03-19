@@ -1,5 +1,7 @@
 pub mod program {
     use std::process::Command;
+    use std::env;
+    use std::path::Path;
     use url::Url;
 
     #[derive(Debug)]
@@ -23,6 +25,16 @@ impl Program {
             .output()
             .expect("Failed to install!");
         }
+    }
+
+    pub fn download(&self) {
+        let path = Path::new("./installers");
+        env::set_current_dir(path)
+            .expect("Unable to set path.");
+        Command::new("powershell")
+                    .args(&["duma", self.url.as_str()])
+                    .output()
+                    .expect("Can't execute command to download file.");
     }
 }
 }

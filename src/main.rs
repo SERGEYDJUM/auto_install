@@ -111,3 +111,16 @@ fn install_test() {
 
     test_program.install();
 }
+
+#[test]
+fn download_test() {
+    let winrar = Program {
+        name: String::from("WinRar"),
+        url: Url::parse("https://www.rarlab.com/rar/winrar-x64-580uk.exe")
+                .expect("Failed to parse url. Url maybe invalid."),
+        path: String::from("./installers"),
+        silent_key: String::from(""),
+        is_installed: false,
+    };
+    winrar.download();
+}

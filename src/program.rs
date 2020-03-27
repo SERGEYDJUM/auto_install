@@ -1,14 +1,14 @@
 pub mod program {
     use std::process::Command;
     use std::env;
-    use std::path::Path;
     use url::Url;
 
     #[derive(Debug)]
     pub struct Program {
         pub name: String,
         pub url: Url,
-        pub path: String, //Path to exe
+        pub path: String,
+        pub filename: String,
         pub silent_key: String,
         pub is_installed: bool
     }
@@ -27,14 +27,21 @@ impl Program {
         }
     }
 
-    pub fn download(&self) {
-        let path = Path::new("./installers");
-        env::set_current_dir(path)
-            .expect("Unable to set path.");
+    pub fn download(&mut self) {
+        let path = String::from(env::current_dir().expect("Current dir is invalid!").to_str().expect("Conversion error!"));
+        let path = format!("{}\\installers\\{}", path, self.filename);
         Command::new("powershell")
-                    .args(&["duma", self.url.as_str()])
+                    .args(&[format!("
+                        $url = \"{}\"
+                        $output = \"{}\"
+                        $start_time = Get-Date
+                        Import-Module BitsTransfer
+                        Start-BitsTransfer -Source $url -Destination $output
+                        Write-Output \"Time taken: $((Get-Date).Subtract($start_time).Seconds) second(s)\"
+                    ", String::from(self.url.as_str()), path)])
                     .output()
                     .expect("Can't execute command to download file.");
+        self.change_path(&path);
     }
 }
 }

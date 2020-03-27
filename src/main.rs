@@ -1,14 +1,11 @@
 use std::{process::Command, path::Path, env, fs};
 use crate::program::program::Program;
-use relative_path::RelativePath;
 use url::Url;
 
 pub mod program;
 
 fn main() {
-    let dir = env::current_dir().unwrap();
-    let dir = dir.to_str().unwrap();
-    let path = RelativePath::new("/src/").to_path(Path::new(&dir)); 
+    
 }
 
 fn check_installed(programs: &mut Vec<Program>) {
@@ -48,11 +45,13 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
                         key += tokens[i];
                     }
                 }
-
+                let mut filename: Vec<&str> = url.as_str().split("/").collect();
+                let filename = String::from(filename.pop().unwrap());
                 programs_list.push(
                     Program {
                         name: name.to_lowercase().to_owned(), 
                         url: url,
+                        filename: filename,
                         silent_key: key,
                         path: String::new(),
                         is_installed: false
@@ -100,11 +99,12 @@ fn read_test() {
 fn install_test() {
     let dir = env::current_dir().unwrap();
     let dir = dir.to_str().unwrap();
-    let path = RelativePath::new("/src/chrome.exe").to_path(Path::new(&dir));
+    let path = RelativePath::new("/installers/winrar-x64-580uk.exe").to_path(Path::new(&dir));
     let test_program = Program {
-        name: "Chrome".to_owned(), 
-        url: Url::parse(&"https://www.google.ru/intl/ru/chrome").expect("Error!"),
+        name: "WinRar".to_owned(), 
+        url: Url::parse(&"https://www.rarlab.com/rar/winrar-x64-580uk.exe").expect("Error!"),
         silent_key: "".to_owned(),
+        filename: "winrar-x64-580uk.exe".to_owned(),
         path: String::from(path.to_str().unwrap()),
         is_installed: false
     };
@@ -114,13 +114,19 @@ fn install_test() {
 
 #[test]
 fn download_test() {
-    let winrar = Program {
+    let mut winrar = Program {
         name: String::from("WinRar"),
         url: Url::parse("https://www.rarlab.com/rar/winrar-x64-580uk.exe")
                 .expect("Failed to parse url. Url maybe invalid."),
-        path: String::from("./installers"),
+        path: String::new(),
+        filename: "winrar-x64-580uk.exe".to_owned(),
         silent_key: String::from(""),
         is_installed: false,
     };
     winrar.download();
+}
+
+#[test]
+fn path_test() {
+    println!("{}\\filename.exe", env::current_dir().expect("Invalid dir!").display(),);
 }

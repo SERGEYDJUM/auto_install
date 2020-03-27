@@ -18,32 +18,27 @@ impl Program {
         self.path = path.to_owned();
     }
 
-    pub fn install(&mut self) -> bool {
+    pub fn install(&mut self) {
         if !self.is_installed {
             Command::new("powershell")
-            .args(&["/C", format!("{} {}", self.path, self.silent_key ).as_str()])
+            .arg(format!("{} {}", self.path, self.silent_key ).as_str())
             .output()
             .expect("Failed to install!");
             self.is_installed = true;
         }
-        self.is_installed
     }
 
-    pub fn download(&mut self) {
+    pub fn download(&mut self, install_dir: &str) {
         let path = String::from(env::current_dir().expect("Current dir is invalid!").to_str().expect("Conversion error!"));
-        let path = format!("{}\\installers\\{}", path, self.filename);
+        let path = format!("{}\\{}\\{}", path, install_dir, self.filename);
         if !Path::new(&path).exists() { //If the file is already downloaded
             Command::new("powershell")
-                    .args(&["mkdir", "installers"])
-                    .output()
-                    .expect("Folder creating error!");
-            Command::new("powershell")
-                    .args(&[format!("
+                    .arg(format!("
                         Import-Module BitsTransfer
                         Start-BitsTransfer -Source {} -Destination {} \
                         -Description \"Downloading {}\" 
                         Write-Host
-                        ", String::from(self.url.as_str()), path, self.filename)])
+                        ", String::from(self.url.as_str()), path, self.filename))
                     .output()
                     .expect("BITS startup error!");
         }

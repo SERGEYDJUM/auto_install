@@ -10,7 +10,7 @@ fn main() {
 
 fn check_installed(programs: &mut Vec<Program>) {
     let apps_list = Command::new("powershell")
-        .args(&["Get-ItemProperty HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName"])
+        .arg("Get-ItemProperty HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName")
         .output()
         .expect("Failed to check apps!");
     let apps_list = unsafe {String::from_utf8_unchecked(apps_list.stdout)};
@@ -89,8 +89,9 @@ fn install_test() {
     let path = path.to_str().expect("Invalid path symbols!");
     let path = format!("{}\\list.cfg", path);
     let progs: Vec<Program> = file_to_vector(&path);
+    fs::create_dir_all("installers").expect("Dir creating error!"); //Recursive
     for mut prog in progs {
-        prog.download();
+        prog.download("installers");
         prog.install();
     }
 }
@@ -101,7 +102,8 @@ fn download_test() {
     let path = path.to_str().expect("Invalid path symbols!");
     let path = format!("{}\\list.cfg", path);
     let progs: Vec<Program> = file_to_vector(&path);
+    fs::create_dir_all("installers").expect("Dir creating error!");
     for mut prog in progs {
-        prog.download();
+        prog.download("installers");
     }
 }

@@ -1,6 +1,5 @@
-use std::{process::Command, path::Path, env, fs};
+use std::{process::Command, env, fs};
 use crate::program::program::Program;
-use relative_path::RelativePath;
 use url::Url;
 
 pub mod program;
@@ -24,7 +23,23 @@ fn check_installed(programs: &mut Vec<Program>) {
     }
 }
 
-fn file_to_vector(path: &Path) -> Vec<Program> {
+fn string_to_pure_rows(text: &String) -> Vec<String> {
+    let lines: Vec<&str> = text.split('\n').collect(); 
+    let mut rows: Vec<String> = Vec::new(); //Returnable vec
+    for row in lines { //Moves lines to rows 
+        let row: String = row.to_owned();
+        rows.push(row);
+    }
+    for i in 0..rows.len() { //Deletes syntax symbols
+        rows[i] = rows[i]
+        .trim()
+        .replace("->", "")
+        .replace("  ", " ");
+    }
+    rows
+}
+
+fn file_to_vector(path: &String) -> Vec<Program> {
     let mut programs_list: Vec<Program> = Vec::new(); //Returnable vec
     let file_content = fs::read_to_string(path).expect("Reading file error!");      
     let file_content = file_content.trim().to_owned();
@@ -46,13 +61,13 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
                         key += tokens[i];
                     }
                 }
-                let mut filename: Vec<&str> = url.as_str().split("/").collect();
-                let filename = String::from(filename.pop().unwrap());
+                let filename = String::from(url.clone().as_str());
+                let mut filename: Vec<&str> = filename.split("/").collect();
                 programs_list.push(
                     Program {
                         name: name.to_lowercase().to_owned(), 
                         url: url,
-                        filename: filename,
+                        filename: String::from(filename.pop().unwrap()),
                         silent_key: key,
                         path: String::new(),
                         is_installed: false
@@ -66,68 +81,27 @@ fn file_to_vector(path: &Path) -> Vec<Program> {
     programs_list
 }
 
-fn string_to_pure_rows(text: &String) -> Vec<String> {
-    let lines: Vec<&str> = text.split('\n').collect(); 
-    let mut rows: Vec<String> = Vec::new(); //Returnable vec
-    for row in lines { //Moves lines to rows 
-        let row: String = row.to_owned();
-        rows.push(row);
-    }
-    for i in 0..rows.len() { //Deletes syntax symbols
-        rows[i] = rows[i]
-        .trim()
-        .replace("->", "")
-        .replace("  ", " ");
-    }
-    rows
-}
-
 
 #[cfg(test)]
 #[test]
-fn read_test() {
-    let dir = env::current_dir().unwrap();
-    let dir = dir.to_str().unwrap();
-    let path = RelativePath::new("/src/list.cfg").to_path(Path::new(&dir)); 
-    let mut progs: Vec<Program> = file_to_vector(&path);
-    let path: String = String::from(path.to_str().unwrap());
-    check_installed(&mut progs);
-    for prog in progs {
-        println!("{:?}", prog);
-    }
-}
-#[test]
 fn install_test() {
-    let dir = env::current_dir().unwrap();
-    let dir = dir.to_str().unwrap();
-    let path = RelativePath::new("/installers/winrar-x64-580uk.exe").to_path(Path::new(&dir));
-    let test_program = Program {
-        name: "WinRar".to_owned(), 
-        url: Url::parse(&"https://www.rarlab.com/rar/winrar-x64-580uk.exe").expect("Error!"),
-        silent_key: "".to_owned(),
-        filename: "winrar-x64-580uk.exe".to_owned(),
-        path: String::from(path.to_str().unwrap()),
-        is_installed: false
-    };
-
-    test_program.install();
+    let path = env::current_dir().expect("Invalid path!");
+    let path = path.to_str().expect("Invalid path symbols!");
+    let path = format!("{}\\list.cfg", path);
+    let progs: Vec<Program> = file_to_vector(&path);
+    for mut prog in progs {
+        prog.download();
+        prog.install();
+    }
 }
 
 #[test]
 fn download_test() {
-    let mut winrar = Program {
-        name: String::from("WinRar"),
-        url: Url::parse("https://www.rarlab.com/rar/winrar-x64-580uk.exe")
-                .expect("Failed to parse url. Url maybe invalid."),
-        path: String::new(),
-        filename: "winrar-x64-580uk.exe".to_owned(),
-        silent_key: String::from(""),
-        is_installed: false,
-    };
-    winrar.download();
-}
-
-#[test]
-fn path_test() {
-    println!("{}\\filename.exe", env::current_dir().expect("Invalid dir!").display(),);
+    let path = env::current_dir().expect("Invalid path!");
+    let path = path.to_str().expect("Invalid path symbols!");
+    let path = format!("{}\\list.cfg", path);
+    let progs: Vec<Program> = file_to_vector(&path);
+    for mut prog in progs {
+        prog.download();
+    }
 }

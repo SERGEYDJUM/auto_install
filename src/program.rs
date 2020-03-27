@@ -1,7 +1,7 @@
 pub mod program {
-    use std::process::Command;
-    use std::env;
+    use std::{process::Command, path::Path, env};
     use url::Url;
+
 
     #[derive(Debug)]
     pub struct Program {
@@ -18,29 +18,35 @@ impl Program {
         self.path = path.to_owned();
     }
 
-    pub fn install(&self) {
+    pub fn install(&mut self) -> bool {
         if !self.is_installed {
-            Command::new("cmd")
+            Command::new("powershell")
             .args(&["/C", format!("{} {}", self.path, self.silent_key ).as_str()])
             .output()
             .expect("Failed to install!");
+            self.is_installed = true;
         }
+        self.is_installed
     }
 
     pub fn download(&mut self) {
         let path = String::from(env::current_dir().expect("Current dir is invalid!").to_str().expect("Conversion error!"));
         let path = format!("{}\\installers\\{}", path, self.filename);
-        Command::new("powershell")
-                    .args(&[format!("
-                        $url = \"{}\"
-                        $output = \"{}\"
-                        $start_time = Get-Date
-                        Import-Module BitsTransfer
-                        Start-BitsTransfer -Source $url -Destination $output
-                        Write-Output \"Time taken: $((Get-Date).Subtract($start_time).Seconds) second(s)\"
-                    ", String::from(self.url.as_str()), path)])
+        if !Path::new(&path).exists() { //If the file is already downloaded
+            Command::new("powershell")
+                    .args(&["mkdir", "installers"])
                     .output()
-                    .expect("Can't execute command to download file.");
+                    .expect("Folder creating error!");
+            Command::new("powershell")
+                    .args(&[format!("
+                        Import-Module BitsTransfer
+                        Start-BitsTransfer -Source {} -Destination {} \
+                        -Description \"Downloading {}\" 
+                        Write-Host
+                        ", String::from(self.url.as_str()), path, self.filename)])
+                    .output()
+                    .expect("BITS startup error!");
+        }
         self.change_path(&path);
     }
 }

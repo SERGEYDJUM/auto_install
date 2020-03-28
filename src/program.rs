@@ -21,7 +21,7 @@ impl Program {
     pub fn install(&mut self) {
         if !self.is_installed {
             Command::new("powershell")
-            .arg(format!("{} {}", self.path, self.silent_key ).as_str())
+            .arg(format!("{} {}", self.path, self.silent_key).as_str())
             .output()
             .expect("Failed to install!");
             self.is_installed = true;

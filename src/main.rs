@@ -26,12 +26,12 @@ fn mode_without_check(install_dir: &str) {
     let user_input = user_input.trim();
     if user_input == "Y" || user_input == "y" {
         for mut app in apps {
-            print!("Downloading {}... ", app.name);
+            println!("Downloading {}... ", app.name);
             app.download(&install_dir);
-            println!("OK");
-            print!("Installing {}... ", app.name);
+            println!("Success!");
+            println!("Installing {}... ", app.name);
             app.install();
-            println!("OK");
+            println!("Success!");
         }
         println!("Installation Completed!");
     }

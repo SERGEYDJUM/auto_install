@@ -1,4 +1,4 @@
-use std::{process::Command, env, fs, path::Path};
+use std::{env, fs, path::Path};
 use crate::program::program::Program;
 use url::Url;
 
@@ -7,19 +7,9 @@ pub mod program;
 fn main() {
     let install_dir = String::from("installers");
     fs::create_dir_all(&install_dir).expect("Dir creating error!");
-    let mode = input(&"Check installed apps before start? (Y/N)");
-    let mode = mode.trim();
-    if mode == "Y" || mode == "y" {
-        mode_with_check(&install_dir)
-    }
-    else if mode == "N" || mode == "n" {
-        mode_without_check(&install_dir)
-    }
-    else {
-        println!("Wrong input!");
-        println!("Installation aborted!");
-    }
+    mode_without_check(&install_dir);
 }
+
 
 fn mode_without_check(install_dir: &str) {
     let path = env::current_dir().expect("Invalid path!");
@@ -52,73 +42,6 @@ fn mode_without_check(install_dir: &str) {
 
 }
 
-fn mode_with_check(install_dir: &str) { 
-    let path = env::current_dir().expect("Invalid path!");
-    let path = path.to_str().expect("Invalid path symbols!");
-    let path = format!("{}\\list.ini", path);
-    print!("Reading list.ini... ");
-    let mut apps: Vec<Program> = file_to_vector(&path);
-    println!("OK");
-    print!("Checking installed apps... ");
-    check_installed(&mut apps);
-    println!("OK");
-    let mut staged_apps: Vec<Program> = Vec::new(); 
-    println!("Apps found: ");
-    println!("  Installed: ");
-    for app in apps {
-        if app.is_installed {
-            println!("      {}", app.name)
-        }
-        else {
-            staged_apps.push(app)
-        }
-    }
-
-    if staged_apps.is_empty() {
-        println!("  Will be installed:");
-        println!("      None");
-        println!("No programs to install!");
-        std::process::exit(0);
-    }
-    else {
-        println!("  Will be installed:");
-        for app in &staged_apps {
-            println!("      {}", app.name)
-        }
-    }
-
-    let user_input = input(&"Download and install apps? (Y/N)");
-    let user_input = user_input.trim();
-    if user_input == "Y" || user_input == "y" {
-        for mut app in staged_apps {
-            print!("Downloading {}... ", app.name);
-            app.download(&install_dir);
-            println!("OK");
-            print!("Installing {}... ", app.name);
-            app.install();
-            println!("OK");
-        }
-        println!("Installation Completed!");
-    }
-    else {
-        println!("Installation aborted!");
-    }
-}
-
-fn check_installed(programs: &mut Vec<Program>) { //TODO: Make this fn useful
-    let apps_list = Command::new("powershell")
-        .arg("Get-ItemProperty HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName")
-        .output()
-        .expect("Failed to check apps!");
-    let apps_list = unsafe {String::from_utf8_unchecked(apps_list.stdout)};
-    //TODO: Make this code safe
-    let apps_list = apps_list.to_lowercase();
-    for program in programs {
-        if apps_list.contains(&program.name.to_lowercase()) {
-            program.is_installed = true;
-        }
-    }
-}
 
 fn string_to_pure_rows(text: &String) -> Vec<String> {
     let lines: Vec<&str> = text.split('\n').collect(); 

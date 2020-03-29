@@ -1,5 +1,5 @@
 use std::{env, fs, path::Path};
-use crate::program::program::Program;
+use crate::program::Program;
 use url::Url;
 
 

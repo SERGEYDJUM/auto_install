@@ -2,13 +2,14 @@ use std::{process::Command, env, fs, path::Path};
 use crate::program::program::Program;
 use url::Url;
 
+
 pub mod program;
+
 
 fn main() {
     let install_dir = String::from("installers");
     fs::create_dir_all(&install_dir).expect("Dir creating error!");
     let mode = input(&"Check installed apps before start? (Y/N)");
-    let mode = mode.trim();
     if mode == "Y" || mode == "y" {
         mode_with_check(&install_dir)
     }
@@ -20,6 +21,7 @@ fn main() {
         println!("Installation aborted!");
     }
 }
+
 
 fn mode_without_check(install_dir: &str) {
     let path = env::current_dir().expect("Invalid path!");
@@ -33,7 +35,6 @@ fn mode_without_check(install_dir: &str) {
         println!("  {}", app.name)
     }
     let user_input = input(&"Download and install apps? (Y)");
-    let user_input = user_input.trim();
     if user_input == "Y" || user_input == "y" {
         for mut app in apps {
             print!("Downloading {}... ", app.name);
@@ -51,6 +52,7 @@ fn mode_without_check(install_dir: &str) {
 
 
 }
+
 
 fn mode_with_check(install_dir: &str) { 
     let path = env::current_dir().expect("Invalid path!");
@@ -88,7 +90,6 @@ fn mode_with_check(install_dir: &str) {
     }
 
     let user_input = input(&"Download and install apps? (Y/N)");
-    let user_input = user_input.trim();
     if user_input == "Y" || user_input == "y" {
         for mut app in staged_apps {
             print!("Downloading {}... ", app.name);
@@ -105,6 +106,7 @@ fn mode_with_check(install_dir: &str) {
     }
 }
 
+
 fn check_installed(programs: &mut Vec<Program>) { //TODO: Make this fn useful
     let apps_list = Command::new("powershell")
         .arg("Get-ItemProperty HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName")
@@ -119,6 +121,7 @@ fn check_installed(programs: &mut Vec<Program>) { //TODO: Make this fn useful
         }
     }
 }
+
 
 fn string_to_pure_rows(text: &String) -> Vec<String> {
     let lines: Vec<&str> = text.split('\n').collect(); 
@@ -135,6 +138,7 @@ fn string_to_pure_rows(text: &String) -> Vec<String> {
     }
     rows
 }
+
 
 fn file_to_vector(path: &String) -> Vec<Program> {
     if !Path::new(&path).exists() {
@@ -181,12 +185,13 @@ fn file_to_vector(path: &String) -> Vec<Program> {
     programs_list
 }
 
+
 fn input(message: &str) -> String
 {
     println!("{}", message);
-    let mut ret = String::new();
-    std::io::stdin().read_line(&mut ret).expect("Failed to read from stdin!");
-    ret
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).expect("Failed to read from stdin!");
+    String::from(input.trim())
 }
 
 
@@ -203,6 +208,7 @@ fn install_test() {
         prog.install();
     }
 }
+
 
 #[test]
 fn download_test() {

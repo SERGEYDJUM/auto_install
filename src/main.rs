@@ -23,7 +23,6 @@ fn mode_without_check(install_dir: &str) {
         println!("  {}", app.name)
     }
     let user_input = input(&"Download and install apps? (Y)");
-    let user_input = user_input.trim();
     if user_input == "Y" || user_input == "y" {
         for mut app in apps {
             println!("Downloading {}... ", app.name);
@@ -58,6 +57,7 @@ fn string_to_pure_rows(text: &String) -> Vec<String> {
     }
     rows
 }
+
 
 fn file_to_vector(path: &String) -> Vec<Program> {
     if !Path::new(&path).exists() {
@@ -104,12 +104,13 @@ fn file_to_vector(path: &String) -> Vec<Program> {
     programs_list
 }
 
+
 fn input(message: &str) -> String
 {
     println!("{}", message);
-    let mut ret = String::new();
-    std::io::stdin().read_line(&mut ret).expect("Failed to read from stdin!");
-    ret
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).expect("Failed to read from stdin!");
+    String::from(input.trim())
 }
 
 

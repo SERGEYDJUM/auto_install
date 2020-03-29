@@ -1,9 +1,10 @@
-use std::{process::Command, env, fs, path::Path};
+use std::{env, fs, path::Path};
 use crate::program::program::Program;
 use url::Url;
 
 
 pub mod program;
+pub mod installed_check;
 
 
 fn main() {
@@ -62,7 +63,9 @@ fn mode_with_check(install_dir: &str) {
     let mut apps: Vec<Program> = file_to_vector(&path);
     println!("OK");
     print!("Checking installed apps... ");
-    check_installed(&mut apps);
+    for app in &mut apps {
+        app.check_installed();
+    }
     println!("OK");
     let mut staged_apps: Vec<Program> = Vec::new(); 
     println!("Apps found: ");
@@ -103,22 +106,6 @@ fn mode_with_check(install_dir: &str) {
     }
     else {
         println!("Installation aborted!");
-    }
-}
-
-
-fn check_installed(programs: &mut Vec<Program>) { //TODO: Make this fn useful
-    let apps_list = Command::new("powershell")
-        .arg("Get-ItemProperty HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Select-Object DisplayName")
-        .output()
-        .expect("Failed to check apps!");
-    let apps_list = unsafe {String::from_utf8_unchecked(apps_list.stdout)};
-    //TODO: Make this code safe
-    let apps_list = apps_list.to_lowercase();
-    for program in programs {
-        if apps_list.contains(&program.name.to_lowercase()) {
-            program.is_installed = true;
-        }
     }
 }
 

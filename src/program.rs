@@ -1,4 +1,4 @@
-pub use crate::installed_check::app_installed;
+pub use crate::installed_scan::app_installed;
 use std::{process::Command, path::Path, env};
 use url::Url;
 

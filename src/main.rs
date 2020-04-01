@@ -4,18 +4,18 @@ use url::Url;
 
 
 pub mod program;
-pub mod installed_check;
+pub mod installed_scan;
 
 
 fn main() {
     let install_dir = String::from("installers");
     fs::create_dir_all(&install_dir).expect("Dir creating error!");
-    let mode = input(&"Check installed apps before start? (Y/N)");
+    let mode = input(&"Scan installed apps before start? (Y/N)");
     if mode == "Y" || mode == "y" {
-        mode_with_check(&install_dir)
+        mode_with_scan(&install_dir)
     }
     else if mode == "N" || mode == "n" {
-        mode_without_check(&install_dir)
+        mode_without_scan(&install_dir)
     }
     else {
         println!("Wrong input!");
@@ -24,7 +24,7 @@ fn main() {
 }
 
 
-fn mode_without_check(install_dir: &str) {
+fn mode_without_scan(install_dir: &str) {
     let path = env::current_dir().expect("Invalid path!");
     let path = path.to_str().expect("Invalid path symbols!");
     let path = format!("{}\\list.ini", path);
@@ -55,14 +55,14 @@ fn mode_without_check(install_dir: &str) {
 }
 
 
-fn mode_with_check(install_dir: &str) { 
+fn mode_with_scan(install_dir: &str) { 
     let path = env::current_dir().expect("Invalid path!");
     let path = path.to_str().expect("Invalid path symbols!");
     let path = format!("{}\\list.ini", path);
     print!("Reading list.ini... ");
     let mut apps: Vec<Program> = file_to_vector(&path);
     println!("OK");
-    print!("Checking installed apps... ");
+    print!("Scaning installed apps... ");
     for app in &mut apps {
         app.check_installed();
     }
